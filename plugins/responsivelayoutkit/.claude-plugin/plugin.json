@@ -1,7 +1,7 @@
 {
   "name": "responsivelayoutkit",
   "description": "Scene-aware responsive SwiftUI layout guidance and API reference for the ResponsiveLayoutKit library.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "Kaleb Cooper"
   },

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-07-18
+
+No public API changes — library sources are identical to 0.1.1.
+
+### Changed
+
+- Claude Code skill (`responsivelayoutkit`) now advertises the **RLK** abbreviation in its discoverable `description` (and body), so an agent is more likely to invoke it when a user refers to the library as RLK. Plugin bumped to 1.0.1.
+
 ## [0.1.1] - 2026-07-18
 
 No public API changes — library sources are identical to 0.1.0.

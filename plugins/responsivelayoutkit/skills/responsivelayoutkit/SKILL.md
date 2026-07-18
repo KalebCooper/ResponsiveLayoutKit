@@ -1,11 +1,11 @@
 ---
 name: responsivelayoutkit
-description: Use when building SwiftUI apps (iOS 26+) that adapt layout to phone vs tablet / size class, or need window-scene truth instead of container-local size classes — sidebar-vs-tab-bar, column counts, sheets on iPad that must know the scene is regular-width, or accessibility-driven conditional scrolling. Triggers on the ResponsiveLayoutKit library and its symbols: ResponsiveView, the .responsive and .responsiveLayout view modifiers, .sceneLayoutAnchor and the sceneLayout environment value, .accessibilityScrollView, and the ResponsiveLayout, LayoutContext, SceneLayoutEnvironment, AccessibilityScrollMode, and AccessibilityScrollHeightThreshold types. Also use when deciding between container-local and scene-wide size-class resolution, or when a layout change is unexpectedly resetting @State.
+description: Use when building SwiftUI apps (iOS 26+) with ResponsiveLayoutKit — a.k.a. RLK — that adapt layout to phone vs tablet / size class, or need window-scene truth instead of container-local size classes — sidebar-vs-tab-bar, column counts, sheets on iPad that must know the scene is regular-width, or accessibility-driven conditional scrolling. Triggers on the ResponsiveLayoutKit (RLK) library and its symbols: ResponsiveView, the .responsive and .responsiveLayout view modifiers, .sceneLayoutAnchor and the sceneLayout environment value, .accessibilityScrollView, and the ResponsiveLayout, LayoutContext, SceneLayoutEnvironment, AccessibilityScrollMode, and AccessibilityScrollHeightThreshold types. Also use when a user refers to the library as RLK, when deciding between container-local and scene-wide size-class resolution, or when a layout change is unexpectedly resetting @State.
 ---
 
 # ResponsiveLayoutKit
 
-SwiftUI responsive layout for **iOS 26+** (Swift 6.2+). `import ResponsiveLayoutKit`. Adapts UI to `phone` vs `tablet` layout families, and lets each decision resolve against the **local container** or the **window scene**.
+ResponsiveLayoutKit — **RLK** for short — is SwiftUI responsive layout for **iOS 26+** (Swift 6.2+). `import ResponsiveLayoutKit`. Adapts UI to `phone` vs `tablet` layout families, and lets each decision resolve against the **local container** or the **window scene**.
 
 ## Core principle: identity behavior is visible in the API's shape
 
