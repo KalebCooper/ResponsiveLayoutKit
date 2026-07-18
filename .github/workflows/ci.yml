@@ -19,7 +19,7 @@ jobs:
         run: |
           set -o pipefail
           xcodebuild test \
-            -scheme ResponsiveLayoutKit-Package \
+            -scheme ResponsiveLayoutKit \
             -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
             -skipPackagePluginValidation \
             | xcbeautify --renderer github-actions
