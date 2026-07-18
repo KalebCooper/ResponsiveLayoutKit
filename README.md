@@ -119,7 +119,32 @@ The kit follows one rule: **identity behavior is visible in an API's shape.**
 
 ## Demo app
 
-The package includes a `ResponsiveLayoutKitDemo` executable target demonstrating every API live (scene readouts, container-vs-scene in a sheet, identity survival, accessibility scrolling). Open the package in Xcode, select the **ResponsiveLayoutKitDemo** scheme, and run on an iPad simulator. It is not part of any product — consumers of the library never build it.
+A runnable demo app in [`Demo/`](Demo/) exercises every API live — scene readouts, container-vs-scene in a sheet, identity survival, accessibility scrolling. It's a standalone Xcode app that references this package as a local dependency, so it's **never** part of any product: consumers of the library never build or link it, and it isn't shipped via SwiftPM.
+
+SwiftPM can't build an iOS `.app`, so the demo needs a real Xcode app target. The project file is generated from [`Demo/project.yml`](Demo/project.yml) with [XcodeGen](https://github.com/yonaskolb/XcodeGen) rather than checked in. Generate and open it:
+
+```bash
+# One-time: install XcodeGen (https://github.com/yonaskolb/XcodeGen)
+brew install xcodegen
+
+# From the repo root:
+cd Demo
+xcodegen generate
+open ResponsiveLayoutKitDemo.xcodeproj
+```
+
+Then pick an iPhone or iPad simulator and hit **Run** (⌘R). Re-run `xcodegen generate` any time `project.yml` or the source layout changes.
+
+## Claude Code skill
+
+This repo doubles as a [Claude Code](https://code.claude.com) plugin marketplace. If you build with Claude Code, install the bundled skill so the agent knows ResponsiveLayoutKit's APIs and identity semantics when writing code against the library:
+
+```bash
+/plugin marketplace add KalebCooper/ResponsiveLayoutKit
+/plugin install responsivelayoutkit@cooperlabs
+```
+
+The skill loads on demand when you work on responsive-layout code — no configuration needed. Pull newer versions later with `/plugin marketplace update`. Source lives in [`plugins/responsivelayoutkit/`](plugins/responsivelayoutkit/).
 
 ## Documentation
 

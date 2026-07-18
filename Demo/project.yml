@@ -1,0 +1,34 @@
+name: ResponsiveLayoutKitDemo
+options:
+  bundleIdPrefix: com.cooperlabs
+  deploymentTarget:
+    iOS: "26.0"
+  minimumXcodeGenVersion: "2.46.0"
+
+packages:
+  ResponsiveLayoutKit:
+    path: ..
+
+targets:
+  ResponsiveLayoutKitDemo:
+    type: application
+    platform: iOS
+    sources:
+      - Sources
+      - Resources
+    dependencies:
+      - package: ResponsiveLayoutKit
+        product: ResponsiveLayoutKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.cooperlabs.ResponsiveLayoutKitDemo
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "6.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        GENERATE_INFOPLIST_FILE: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight

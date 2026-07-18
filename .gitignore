@@ -6,3 +6,6 @@ DerivedData/
 .swiftpm/configuration/registries.json
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
+
+# Demo app project is generated from Demo/project.yml via XcodeGen — not checked in.
+/Demo/*.xcodeproj

@@ -1,0 +1,15 @@
+{
+  "name": "cooperlabs",
+  "owner": {
+    "name": "Kaleb Cooper"
+  },
+  "plugins": [
+    {
+      "name": "responsivelayoutkit",
+      "source": "./plugins/responsivelayoutkit",
+      "description": "Scene-aware responsive SwiftUI layout guidance for the ResponsiveLayoutKit library.",
+      "category": "ios",
+      "tags": ["swiftui", "ios", "responsive-layout", "accessibility"]
+    }
+  ]
+}

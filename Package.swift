@@ -15,13 +15,11 @@ let package = Package(
         .target(
             name: "ResponsiveLayoutKit"
         ),
-        // Demo app: buildable/runnable from this project (select the
-        // ResponsiveLayoutKitDemo scheme), but not part of any product, so
-        // consumers of the library never build or link it.
-        .executableTarget(
-            name: "ResponsiveLayoutKitDemo",
-            dependencies: ["ResponsiveLayoutKit"]
-        ),
+        // The runnable demo lives in Demo/ as a standalone Xcode app project
+        // (SwiftPM cannot build an iOS .app). It references this package as a
+        // local dependency and is never part of any product, so consumers of
+        // the library never build or link it. See Demo/README or the root
+        // README for setup.
         .testTarget(
             name: "ResponsiveLayoutKitTests",
             dependencies: ["ResponsiveLayoutKit"]
