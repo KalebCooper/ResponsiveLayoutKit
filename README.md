@@ -1,4 +1,6 @@
-# ResponsiveLayoutKit
+<img src="Assets/ResponsiveLayoutKit-SocialPreview.png" alt="ResponsiveLayoutKit — scene-aware responsive layout for SwiftUI" width="100%">
+
+# <img src="Assets/ResponsiveLayoutKit-Logo.png" alt="" height="30" align="top"> ResponsiveLayoutKit
 
 Size-class-driven responsive layout for SwiftUI — write your UI once, provide phone- or tablet-specific layouts only where they differ, and choose whether each decision reacts to the **local container** or the **window scene**.
 
