@@ -36,8 +36,23 @@ struct ResponsiveContent<Content: View>: View {
     @Environment(\.responsiveLayoutOverride) private var override
 
     private func resolvedLayout(with sceneLayout: SceneLayoutEnvironment?) -> ResponsiveLayout {
-        override
-            ?? sceneLayout?.responsiveLayout
-            ?? ResponsiveLayout(horizontalSizeClass: horizontalSizeClass)
+        resolvedResponsiveLayout(
+            override: override,
+            sceneLayout: sceneLayout?.responsiveLayout,
+            horizontalSizeClass: horizontalSizeClass
+        )
     }
+}
+
+/// Applies the responsive-layout precedence: an explicit override wins, then
+/// scene or container truth, then the horizontal size class. Separated as a
+/// pure function so the precedence is unit-testable.
+func resolvedResponsiveLayout(
+    override: ResponsiveLayout?,
+    sceneLayout: ResponsiveLayout?,
+    horizontalSizeClass: UserInterfaceSizeClass?
+) -> ResponsiveLayout {
+    override
+        ?? sceneLayout
+        ?? ResponsiveLayout(horizontalSizeClass: horizontalSizeClass)
 }
