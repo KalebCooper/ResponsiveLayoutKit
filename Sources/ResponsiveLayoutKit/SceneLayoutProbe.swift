@@ -13,43 +13,43 @@ import UIKit
 /// window, not the SwiftUI environment.
 struct SceneLayoutProbe: UIViewRepresentable {
 
-    let onResolve: @MainActor (SceneLayoutEnvironment) -> Void
+  let onResolve: @MainActor (SceneLayoutEnvironment) -> Void
 
-    func makeUIView(context: Context) -> ProbeView {
-        ProbeView(onResolve: onResolve)
+  func makeUIView(context: Context) -> ProbeView {
+    ProbeView(onResolve: onResolve)
+  }
+
+  func updateUIView(_ uiView: ProbeView, context: Context) {
+    uiView.onResolve = onResolve
+  }
+
+  final class ProbeView: UIView {
+
+    var onResolve: @MainActor (SceneLayoutEnvironment) -> Void
+
+    init(onResolve: @escaping @MainActor (SceneLayoutEnvironment) -> Void) {
+      self.onResolve = onResolve
+      super.init(frame: .zero)
+      isUserInteractionEnabled = false
     }
 
-    func updateUIView(_ uiView: ProbeView, context: Context) {
-        uiView.onResolve = onResolve
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+      fatalError("init(coder:) is not supported")
     }
 
-    final class ProbeView: UIView {
-
-        var onResolve: @MainActor (SceneLayoutEnvironment) -> Void
-
-        init(onResolve: @escaping @MainActor (SceneLayoutEnvironment) -> Void) {
-            self.onResolve = onResolve
-            super.init(frame: .zero)
-            isUserInteractionEnabled = false
-        }
-
-        @available(*, unavailable)
-        required init?(coder: NSCoder) {
-            fatalError("init(coder:) is not supported")
-        }
-
-        override func didMoveToWindow() {
-            super.didMoveToWindow()
-            guard let window, let windowScene = window.windowScene else { return }
-            let environment = SceneLayoutRegistry.shared.environment(for: windowScene)
-            environment.attach(window: window)
-            let resolve = onResolve
-            // Defer the state write out of the current view update.
-            Task { @MainActor in
-                resolve(environment)
-            }
-        }
+    override func didMoveToWindow() {
+      super.didMoveToWindow()
+      guard let window, let windowScene = window.windowScene else { return }
+      let environment = SceneLayoutRegistry.shared.environment(for: windowScene)
+      environment.attach(window: window)
+      let resolve = onResolve
+      // Defer the state write out of the current view update.
+      Task { @MainActor in
+        resolve(environment)
+      }
     }
+  }
 }
 
 /// Provides its content closure with the scene's ``SceneLayoutEnvironment`` —
@@ -58,20 +58,20 @@ struct SceneLayoutProbe: UIViewRepresentable {
 /// layout pass).
 struct SceneLayoutReader<Content: View>: View {
 
-    @ViewBuilder let content: (SceneLayoutEnvironment?) -> Content
+  @ViewBuilder let content: (SceneLayoutEnvironment?) -> Content
 
-    @State private var discovered: SceneLayoutEnvironment?
-    @Environment(\.sceneLayout) private var inherited
+  @State private var discovered: SceneLayoutEnvironment?
+  @Environment(\.sceneLayout) private var inherited
 
-    var body: some View {
-        content(inherited ?? discovered)
-            .background {
-                if inherited == nil {
-                    SceneLayoutProbe { discovered = $0 }
-                        .frame(width: 0, height: 0)
-                        .accessibilityHidden(true)
-                        .allowsHitTesting(false)
-                }
-            }
-    }
+  var body: some View {
+    content(inherited ?? discovered)
+      .background {
+        if inherited == nil {
+          SceneLayoutProbe { discovered = $0 }
+            .frame(width: 0, height: 0)
+            .accessibilityHidden(true)
+            .allowsHitTesting(false)
+        }
+      }
+  }
 }

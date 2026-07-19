@@ -14,24 +14,24 @@ import UIKit
 @MainActor
 final class SceneLayoutRegistry {
 
-    static let shared = SceneLayoutRegistry()
+  static let shared = SceneLayoutRegistry()
 
-    private var environments: [ObjectIdentifier: SceneLayoutEnvironment] = [:]
+  private var environments: [ObjectIdentifier: SceneLayoutEnvironment] = [:]
 
-    private init() {}
+  private init() {}
 
-    func environment(for windowScene: UIWindowScene) -> SceneLayoutEnvironment {
-        pruneDisconnectedScenes()
-        let key = ObjectIdentifier(windowScene)
-        if let existing = environments[key] {
-            return existing
-        }
-        let environment = SceneLayoutEnvironment(windowScene: windowScene)
-        environments[key] = environment
-        return environment
+  func environment(for windowScene: UIWindowScene) -> SceneLayoutEnvironment {
+    pruneDisconnectedScenes()
+    let key = ObjectIdentifier(windowScene)
+    if let existing = environments[key] {
+      return existing
     }
+    let environment = SceneLayoutEnvironment(windowScene: windowScene)
+    environments[key] = environment
+    return environment
+  }
 
-    private func pruneDisconnectedScenes() {
-        environments = environments.filter(\.value.isSceneConnected)
-    }
+  private func pruneDisconnectedScenes() {
+    environments = environments.filter(\.value.isSceneConnected)
+  }
 }

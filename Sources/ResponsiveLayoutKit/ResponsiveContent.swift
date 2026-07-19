@@ -16,43 +16,43 @@ import SwiftUI
 /// (like ``ResponsiveView``) opt into identity swaps deliberately.
 struct ResponsiveContent<Content: View>: View {
 
-    let context: LayoutContext
-    @ViewBuilder let content: (ResponsiveLayout) -> Content
+  let context: LayoutContext
+  @ViewBuilder let content: (ResponsiveLayout) -> Content
 
-    var body: some View {
-        // `context` is constant per call site, so this switch never flips
-        // identity at runtime.
-        switch context {
-        case .container:
-            content(resolvedLayout(with: nil))
-        case .scene:
-            SceneLayoutReader { sceneLayout in
-                content(resolvedLayout(with: sceneLayout))
-            }
-        }
+  var body: some View {
+    // `context` is constant per call site, so this switch never flips
+    // identity at runtime.
+    switch context {
+    case .container:
+      content(resolvedLayout(with: nil))
+    case .scene:
+      SceneLayoutReader { sceneLayout in
+        content(resolvedLayout(with: sceneLayout))
+      }
     }
+  }
 
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    @Environment(\.responsiveLayoutOverride) private var override
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+  @Environment(\.responsiveLayoutOverride) private var override
 
-    private func resolvedLayout(with sceneLayout: SceneLayoutEnvironment?) -> ResponsiveLayout {
-        resolvedResponsiveLayout(
-            override: override,
-            sceneLayout: sceneLayout?.responsiveLayout,
-            horizontalSizeClass: horizontalSizeClass
-        )
-    }
+  private func resolvedLayout(with sceneLayout: SceneLayoutEnvironment?) -> ResponsiveLayout {
+    resolvedResponsiveLayout(
+      override: override,
+      sceneLayout: sceneLayout?.responsiveLayout,
+      horizontalSizeClass: horizontalSizeClass
+    )
+  }
 }
 
 /// Applies the responsive-layout precedence: an explicit override wins, then
 /// scene or container truth, then the horizontal size class. Separated as a
 /// pure function so the precedence is unit-testable.
 func resolvedResponsiveLayout(
-    override: ResponsiveLayout?,
-    sceneLayout: ResponsiveLayout?,
-    horizontalSizeClass: UserInterfaceSizeClass?
+  override: ResponsiveLayout?,
+  sceneLayout: ResponsiveLayout?,
+  horizontalSizeClass: UserInterfaceSizeClass?
 ) -> ResponsiveLayout {
-    override
-        ?? sceneLayout
-        ?? ResponsiveLayout(horizontalSizeClass: horizontalSizeClass)
+  override
+    ?? sceneLayout
+    ?? ResponsiveLayout(horizontalSizeClass: horizontalSizeClass)
 }

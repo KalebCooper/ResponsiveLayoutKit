@@ -25,26 +25,26 @@ import SwiftUI
 /// > keeps identity stable.
 public struct ResponsiveView<PhoneContent: View, TabletContent: View>: View {
 
-    public init(
-        in context: LayoutContext = .container,
-        @ViewBuilder phone: @escaping () -> PhoneContent,
-        @ViewBuilder tablet: @escaping () -> TabletContent
-    ) {
-        self.context = context
-        self.phone = phone
-        self.tablet = tablet
-    }
+  public init(
+    in context: LayoutContext = .container,
+    @ViewBuilder phone: @escaping () -> PhoneContent,
+    @ViewBuilder tablet: @escaping () -> TabletContent
+  ) {
+    self.context = context
+    self.phone = phone
+    self.tablet = tablet
+  }
 
-    public var body: some View {
-        ResponsiveContent(context: context) { layout in
-            switch layout {
-            case .phone: phone()
-            case .tablet: tablet()
-            }
-        }
+  public var body: some View {
+    ResponsiveContent(context: context) { layout in
+      switch layout {
+      case .phone: phone()
+      case .tablet: tablet()
+      }
     }
+  }
 
-    private let context: LayoutContext
-    private let phone: () -> PhoneContent
-    private let tablet: () -> TabletContent
+  private let context: LayoutContext
+  private let phone: () -> PhoneContent
+  private let tablet: () -> TabletContent
 }
