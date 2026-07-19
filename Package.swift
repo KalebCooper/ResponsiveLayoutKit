@@ -18,7 +18,7 @@ let package = Package(
         // The runnable demo lives in Demo/ as a standalone Xcode app project
         // (SwiftPM cannot build an iOS .app). It references this package as a
         // local dependency and is never part of any product, so consumers of
-        // the library never build or link it. See Demo/README or the root
+        // the library never build or link it. See Demo/README.md or the root
         // README for setup.
         .testTarget(
             name: "ResponsiveLayoutKitTests",

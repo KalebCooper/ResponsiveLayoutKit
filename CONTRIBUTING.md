@@ -6,8 +6,8 @@ Thanks for your interest in contributing!
 
 1. Fork and clone the repository.
 2. Open the package directory in Xcode 26 or later.
-3. Build the `ResponsiveLayoutKit` scheme; run tests with the `ResponsiveLayoutKit-Package` scheme (⌘U) on an iOS 26+ simulator.
-4. The `ResponsiveLayoutKitDemo` scheme runs a demo app exercising every API — useful for manually verifying behavior on iPad (Stage Manager resizing, sheets, Dynamic Type).
+3. Build and run tests on the `ResponsiveLayoutKit` scheme (⌘U) on an iOS 26+ simulator.
+4. The `ResponsiveLayoutKitDemo` scheme runs a demo app exercising every API, useful for manually verifying behavior on iPad (Stage Manager resizing, sheets, Dynamic Type).
 
 ## Guidelines
 
@@ -20,7 +20,7 @@ Thanks for your interest in contributing!
 ## Pull requests
 
 - Target `main`.
-- Keep PRs focused — one concern per PR.
+- Keep PRs focused: one concern per PR.
 - Update `CHANGELOG.md` under **Unreleased**.
 - CI must pass (build + tests on an iOS simulator).
 

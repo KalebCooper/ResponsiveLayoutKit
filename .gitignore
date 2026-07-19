@@ -9,3 +9,6 @@ DerivedData/
 
 # Demo app project is generated from Demo/project.yml via XcodeGen — not checked in.
 /Demo/*.xcodeproj
+
+# Local planning docs, not part of the published repo.
+/plans/
