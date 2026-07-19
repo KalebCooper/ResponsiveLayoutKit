@@ -1,0 +1,71 @@
+name: Docs
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Least-privilege GITHUB_TOKEN plus the scopes deploy-pages needs to publish.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One Pages publish in flight at a time; never cancel a running deploy.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build DocC site
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      # Mirrors ci.yml's docbuild job (same scheme + iOS-sim destination) so the
+      # archive comes from the known warning-clean build. -derivedDataPath is the
+      # one addition: it pins where the .doccarchive lands for the next step.
+      - name: Build documentation archive
+        run: |
+          set -o pipefail
+          xcodebuild docbuild \
+            -scheme ResponsiveLayoutKit \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' \
+            -derivedDataPath .derivedData \
+            -skipPackagePluginValidation \
+            | xcbeautify --renderer github-actions
+
+      # Rewrite the archive for static hosting under the Pages sub-path
+      # (site serves from https://<owner>.github.io/ResponsiveLayoutKit/).
+      - name: Transform for static hosting
+        run: |
+          set -euo pipefail
+          archive="$(find .derivedData -type d -name 'ResponsiveLayoutKit.doccarchive' | head -1)"
+          "$(xcrun --find docc)" process-archive transform-for-static-hosting \
+            "$archive" \
+            --output-path _site \
+            --hosting-base-path ResponsiveLayoutKit
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
