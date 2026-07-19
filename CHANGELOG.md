@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-19
+
+Minor release: tooling, tests, and documentation. No public API changes.
+
+### Added
+
+- DocC documentation catalog: a landing page plus a getting-started article.
+- Expanded test coverage: layout-precedence resolution, `LayoutContext` branches, and the `ResponsiveLayout` ratio constants.
+- iPad CI destination: iPhone and iPad simulators run as a matrix, pinned to `OS=latest`.
+- swift-format lint and DocC docbuild jobs in CI.
+- `SECURITY.md`: supported versions and a private vulnerability report channel.
+- `Demo/README.md`: XcodeGen setup steps for the demo app.
+
+### Changed
+
+- Documentation wording pass across README, CONTRIBUTING, and CHANGELOG.
+
+### Fixed
+
+- `CONTRIBUTING.md` referenced the removed `ResponsiveLayoutKit-Package` scheme; it now points at the `ResponsiveLayoutKit` scheme.
+- `Package.swift` test-target comment pointed at a nonexistent `Demo/README`; corrected to `Demo/README.md`.
+
 ## [0.1.2] - 2026-07-18
 
 No public API changes; library sources are identical to 0.1.1.
