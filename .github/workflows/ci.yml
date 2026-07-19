@@ -46,12 +46,8 @@ jobs:
       - name: Show swift-format version
         run: swift format --version
 
-      # Non-blocking: current Sources/Tests are not swift-format-clean. The step
-      # still runs --strict and surfaces every finding in the log, but its
-      # failure is tolerated so the job check stays green. Drop this line to make
-      # the lint a required gate once Sources/Tests are formatted.
+      # swift-format lint gates the build; any finding fails the job.
       - name: Lint
-        continue-on-error: true
         run: swift format lint --strict --recursive Sources Tests
 
   docbuild:
