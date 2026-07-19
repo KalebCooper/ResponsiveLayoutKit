@@ -12,3 +12,7 @@ DerivedData/
 
 # Local planning docs, not part of the published repo.
 /plans/
+
+# Repo-local agent and contributor notes, kept out of version control.
+/AGENTS.md
+/CLAUDE.md
