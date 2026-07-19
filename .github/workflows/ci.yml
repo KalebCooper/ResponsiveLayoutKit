@@ -7,7 +7,55 @@ on:
 
 jobs:
   test:
-    name: Build & Test (iOS Simulator)
+    name: Build & Test (${{ matrix.name }})
+    runs-on: macos-26
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: iPhone
+            destination: 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest'
+          - name: iPad
+            destination: 'platform=iOS Simulator,name=iPad Pro 13-inch (M5),OS=latest'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      # Surfaces the runner's real device names so a runner-image bump that
+      # renames a simulator is diagnosable from the log, not just a red X.
+      - name: List available simulators
+        run: xcrun simctl list devices available
+
+      - name: Build and test
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -scheme ResponsiveLayoutKit \
+            -destination '${{ matrix.destination }}' \
+            -skipPackagePluginValidation \
+            | xcbeautify --renderer github-actions
+
+  lint:
+    name: swift-format lint
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show swift-format version
+        run: swift format --version
+
+      # Non-blocking: current Sources/Tests are not swift-format-clean. The step
+      # still runs --strict and surfaces every finding in the log, but its
+      # failure is tolerated so the job check stays green. Drop this line to make
+      # the lint a required gate once Sources/Tests are formatted.
+      - name: Lint
+        continue-on-error: true
+        run: swift format lint --strict --recursive Sources Tests
+
+  docbuild:
+    name: Build documentation
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
@@ -15,11 +63,11 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
-      - name: Build and test
+      - name: Build documentation
         run: |
           set -o pipefail
-          xcodebuild test \
+          xcodebuild docbuild \
             -scheme ResponsiveLayoutKit \
-            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' \
             -skipPackagePluginValidation \
             | xcbeautify --renderer github-actions
