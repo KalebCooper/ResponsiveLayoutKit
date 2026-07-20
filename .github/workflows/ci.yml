@@ -18,7 +18,7 @@ jobs:
           - name: iPad
             destination: 'platform=iOS Simulator,name=iPad Pro 13-inch (M5),OS=latest'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Show Xcode version
         run: xcodebuild -version
@@ -41,7 +41,7 @@ jobs:
     name: swift-format lint
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Show swift-format version
         run: swift format --version
@@ -54,7 +54,7 @@ jobs:
     name: Build documentation
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Show Xcode version
         run: xcodebuild -version
