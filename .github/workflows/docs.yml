@@ -53,6 +53,28 @@ jobs:
             --output-path _site \
             --hosting-base-path ResponsiveLayoutKit
 
+      # DocC's static-hosting output has no landing page at the site root: the
+      # bare index.html is an app shell that keeps baseUrl "/" (so its assets
+      # 404 under the Pages sub-path) and has no route to render. Replace it with
+      # a redirect into the single documentation route so the bare URL works.
+      - name: Write root redirect
+        run: |
+          set -euo pipefail
+          cat > _site/index.html <<'HTML'
+          <!DOCTYPE html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta http-equiv="refresh" content="0; url=documentation/responsivelayoutkit/">
+              <link rel="canonical" href="https://kalebcooper.github.io/ResponsiveLayoutKit/documentation/responsivelayoutkit/">
+              <title>ResponsiveLayoutKit</title>
+            </head>
+            <body>
+              <p>Redirecting to the <a href="documentation/responsivelayoutkit/">ResponsiveLayoutKit documentation</a>…</p>
+            </body>
+          </html>
+          HTML
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
