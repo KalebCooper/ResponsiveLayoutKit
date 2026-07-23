@@ -32,7 +32,7 @@ Add via Swift Package Manager:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/KalebCooper/ResponsiveLayoutKit.git", from: "0.2.0")
+    .package(url: "https://github.com/KalebCooper/ResponsiveLayoutKit.git", from: "0.3.0")
 ]
 ```
 
