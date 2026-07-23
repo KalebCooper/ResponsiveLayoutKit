@@ -33,3 +33,41 @@ struct ResponsiveModifierDemo: View {
         .navigationTitle("Responsive Modifier")
     }
 }
+
+/// `.responsiveContentWidth()` caps scroll content to a readable fraction of
+/// the scene width on tablet layouts — phone stays full-width. Applied to the
+/// content inside the ScrollView, never the ScrollView, so gutter pans still
+/// scroll.
+struct ResponsiveContentWidthDemo: View {
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Readable content width")
+                    .font(.title2.bold())
+                Text("On an iPad (or any regular-width scene), this column is capped to \(Int(ResponsiveLayout.baseTabletLayoutRatio * 100))% of the scene width and centered; the scroll surface behind it stays edge-to-edge. On iPhone it spans the full width. Resize in Stage Manager or Split View: the cap tracks the window, not the display.")
+                ForEach(0..<8) { index in
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.blue.opacity(0.12))
+                        .frame(height: 64)
+                        .overlay(Text("Row \(index + 1)"))
+                }
+            }
+            .padding()
+            .responsiveContentWidth()
+        }
+        .navigationTitle("Content Width")
+    }
+}
+
+#Preview("Content width, mocked tablet") {
+    NavigationStack {
+        ResponsiveContentWidthDemo()
+    }
+    .sceneLayout(
+        mocking: SceneLayoutMockValues(
+            size: CGSize(width: 1210, height: 856),
+            horizontalSizeClass: .regular
+        )
+    )
+}

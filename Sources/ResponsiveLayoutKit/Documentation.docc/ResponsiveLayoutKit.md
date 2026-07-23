@@ -34,26 +34,37 @@ The kit follows one rule: **identity behavior is visible in an API's shape.**
 ### Essentials
 
 - <doc:GettingStarted>
+- <doc:SceneDiscovery>
 
 ### Adapting layout
 
 - ``SwiftUICore/View/responsive(in:content:)``
 - ``ResponsiveView``
 - ``SwiftUICore/View/responsiveLayout(_:)``
+- ``SwiftUICore/View/responsiveContentWidth(tabletFraction:)``
 
 ### The layout model
 
 - ``ResponsiveLayout``
 - ``LayoutContext``
+- ``SwiftUICore/EnvironmentValues/responsiveLayout``
+- ``SwiftUICore/EnvironmentValues/containerResponsiveLayout``
 
 ### Scene truth
 
 - ``SwiftUICore/View/sceneLayoutAnchor()``
 - ``SwiftUICore/EnvironmentValues/sceneLayout``
 - ``SceneLayoutEnvironment``
+- ``SceneLayoutReader``
+
+### Previews and tests
+
+- ``SwiftUICore/View/sceneLayout(mocking:)``
+- ``SceneLayoutMockValues``
 
 ### Accessibility scrolling
 
 - ``SwiftUICore/View/accessibilityScrollView(_:)``
+- ``SwiftUICore/View/accessibilityScrollFloor(_:)``
 - ``AccessibilityScrollMode``
 - ``AccessibilityScrollHeightThreshold``

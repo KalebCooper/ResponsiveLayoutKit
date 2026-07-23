@@ -11,7 +11,9 @@ import UIKit
 /// window in Stage Manager or rotate the device to watch values update.
 struct SceneLayoutDemo: View {
 
+    @Environment(\.containerResponsiveLayout) private var containerLayout
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.responsiveLayout) private var resolvedLayout
     @Environment(\.sceneLayout) private var sceneLayout
     @Environment(\.verticalSizeClass) private var verticalSizeClass
 
@@ -27,6 +29,10 @@ struct SceneLayoutDemo: View {
                         value: "\(Int(sceneLayout.size.width)) × \(Int(sceneLayout.size.height))"
                     )
                     LabeledContent("Orientation", value: name(for: sceneLayout.interfaceOrientation))
+                    LabeledContent(
+                        "Landscape aspect",
+                        value: sceneLayout.isLandscapeAspectRatio ? "yes" : "no"
+                    )
                 } else {
                     Text("Discovering scene…")
                 }
@@ -34,6 +40,10 @@ struct SceneLayoutDemo: View {
             Section("Container (local truth)") {
                 LabeledContent("Horizontal", value: name(for: horizontalSizeClass))
                 LabeledContent("Vertical", value: name(for: verticalSizeClass))
+            }
+            Section("Resolved values (\\.responsiveLayout)") {
+                LabeledContent("Canonical", value: name(for: resolvedLayout))
+                LabeledContent("Container-only", value: name(for: containerLayout))
             }
             Section {
                 Text("Resize the window in Stage Manager or rotate the device; scene values update live via the anchor installed at the app root.")
@@ -65,4 +75,17 @@ struct SceneLayoutDemo: View {
         default: "unknown"
         }
     }
+}
+
+#Preview("Mocked tablet scene") {
+    NavigationStack {
+        SceneLayoutDemo()
+    }
+    .sceneLayout(
+        mocking: SceneLayoutMockValues(
+            size: CGSize(width: 1210, height: 856),
+            horizontalSizeClass: .regular,
+            interfaceOrientation: .landscapeLeft
+        )
+    )
 }

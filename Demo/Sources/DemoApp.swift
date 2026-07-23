@@ -28,9 +28,11 @@ struct DemoRootView: View {
                 Section("Responsive content") {
                     NavigationLink("Responsive modifier") { ResponsiveModifierDemo() }
                     NavigationLink("ResponsiveView hierarchies") { ResponsiveViewDemo() }
+                    NavigationLink("Readable content width") { ResponsiveContentWidthDemo() }
                 }
                 Section("Accessibility scrolling") {
                     NavigationLink("Accessibility scroll view") { AccessibilityScrollDemo() }
+                    NavigationLink("Compressible floor") { AccessibilityScrollFloorDemo() }
                 }
             }
             .navigationTitle("ResponsiveLayoutKit")

@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `\.responsiveLayout` environment value: the canonically resolved layout
+  family as a value (override → scene truth → container size class → phone),
+  for feeding computed properties, view arguments, and pure functions without
+  the closure APIs. `\.containerResponsiveLayout` is the container-shaped
+  companion that deliberately ignores scene truth.
+- `responsiveContentWidth(tabletFraction:)`: caps scroll content to a readable
+  fraction of the scene width on tablet layouts (default
+  `baseTabletLayoutRatio`), full-width on phone — the SwiftUI analogue of
+  UIKit's `readableContentGuide`. Applied to a `ScrollView`'s content, the
+  scroll surface stays edge-to-edge.
+- `accessibilityScrollFloor(_:)`: declares a compressible floor for greedy
+  views (aspect-ratio images, maps) inside `accessibilityScrollView(_:)`, so
+  they shrink to the floor before the scrolling decision fires instead of
+  forcing permanent scrolling via their large ideal height.
+- `sceneLayout(mocking:)` + `SceneLayoutMockValues`: publish a synthetic scene
+  environment for previews and tests, making every scene-truth read — family, size,
+  orientation, safe area — resolve against declared values on any canvas.
+- `SceneLayoutEnvironment.isLandscapeAspectRatio`: whether the scene is wider
+  than tall — the aspect-ratio answer layout math wants, distinct from
+  `interfaceOrientation` under freely resized windows.
+- `SceneLayoutReader` is now public: closure-based scene-truth access with
+  self-discovery when no anchor exists upstream.
+- DocC article "First Frame and Scene Discovery": the `sceneLayout == nil`
+  first-frame contract and the prescribed one-expression fallback patterns.
+- Demo app coverage for the new APIs: resolved-value readouts, a readable
+  content width screen, a compressible-floor screen, and a mocked-scene
+  preview.
+
+### Changed
+
+- Claude Code skill (`responsivelayoutkit`) documents the new value-level,
+  content-width, floor, mock, and reader APIs, and warns against hand-rolled
+  resolution chains. Plugin bumped to 1.1.0.
+
 ## [0.2.0] - 2026-07-19
 
 Minor release: tooling, tests, and documentation. No public API changes.

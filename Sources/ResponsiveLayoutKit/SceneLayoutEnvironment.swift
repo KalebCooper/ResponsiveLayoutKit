@@ -38,6 +38,18 @@ public final class SceneLayoutEnvironment {
   /// The scene's vertical size class, read from the window.
   public private(set) var verticalSizeClass: UserInterfaceSizeClass = .regular
 
+  /// Whether the scene is wider than it is tall.
+  ///
+  /// This is the aspect-ratio answer layout math usually wants, and it is not
+  /// one-to-one with ``interfaceOrientation`` — a freely resized window
+  /// (Stage Manager, Split View) can have a landscape aspect ratio in any
+  /// interface orientation. Prefer this for size-driven decisions; use
+  /// ``interfaceOrientation`` only when the actual device orientation
+  /// matters.
+  public var isLandscapeAspectRatio: Bool {
+    size.width > size.height
+  }
+
   /// The layout family implied by the scene's horizontal size class.
   public var responsiveLayout: ResponsiveLayout {
     ResponsiveLayout(horizontalSizeClass: horizontalSizeClass)
@@ -57,6 +69,33 @@ public final class SceneLayoutEnvironment {
       }
     }
     refresh()
+  }
+
+  /// Creates a detached instance carrying synthetic values, not backed by any
+  /// `UIWindowScene`. Backs `View/sceneLayout(mocking:)` for previews and
+  /// tests; never registered with `SceneLayoutRegistry`.
+  init(mockValues: SceneLayoutMockValues) {
+    apply(mockValues)
+  }
+
+  /// Replaces the published values that differ from the given synthetic
+  /// values, so unchanged values fire no Observation invalidations.
+  func apply(_ mockValues: SceneLayoutMockValues) {
+    if horizontalSizeClass != mockValues.horizontalSizeClass {
+      horizontalSizeClass = mockValues.horizontalSizeClass
+    }
+    if interfaceOrientation != mockValues.interfaceOrientation {
+      interfaceOrientation = mockValues.interfaceOrientation
+    }
+    if safeAreaInsets != mockValues.safeAreaInsets {
+      safeAreaInsets = mockValues.safeAreaInsets
+    }
+    if size != mockValues.size {
+      size = mockValues.size
+    }
+    if verticalSizeClass != mockValues.verticalSizeClass {
+      verticalSizeClass = mockValues.verticalSizeClass
+    }
   }
 
   /// Whether the backing scene is still connected. Used by the registry to

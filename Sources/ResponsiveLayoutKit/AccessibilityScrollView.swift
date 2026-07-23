@@ -68,6 +68,41 @@ public enum AccessibilityScrollMode: Equatable, Sendable {
 
 extension View {
 
+  /// Declares a compressible floor for a greedy element inside
+  /// `View/accessibilityScrollView(_:)`, letting it shrink to `height`
+  /// before the scrolling decision fires.
+  ///
+  /// A greedy view — an aspect-ratio image, a `Map` — reports a large,
+  /// width-derived ideal height, so under ``AccessibilityScrollMode/automatic``
+  /// the "does content fit?" measurement always overflows and scrolling
+  /// always engages, even when the view could compress and everything would
+  /// fit. This modifier pins the element's *ideal* height to the floor, so
+  /// the container measures the compressed layout, and sets the same value
+  /// as a *minimum*, so the element never shrinks below it:
+  ///
+  /// - When the floored layout fits, scrolling stays inert and the element
+  ///   grows into whatever space remains beyond the other content.
+  /// - Only when even the floored layout overflows does scrolling engage,
+  ///   with the element rendered at its floor.
+  ///
+  /// ```swift
+  /// VStack {
+  ///     headerSection
+  ///     Image(.hero)
+  ///         .resizable()
+  ///         .aspectRatio(1.6, contentMode: .fit)
+  ///         .accessibilityScrollFloor(150)
+  /// }
+  /// .accessibilityScrollView()
+  /// ```
+  ///
+  /// No maximum is set, so the element still grows to its natural size when
+  /// space allows. Designed for ``AccessibilityScrollMode/automatic``;
+  /// harmless under the other modes, which don't measure content.
+  public func accessibilityScrollFloor(_ height: CGFloat) -> some View {
+    frame(minHeight: height, idealHeight: height)
+  }
+
   /// Makes this view scrollable when the strategy given by `mode` decides
   /// its content may not fit vertically.
   ///

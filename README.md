@@ -67,6 +67,30 @@ ResponsiveView {
 
 `ResponsiveView` is the one API that swaps subtrees on a layout change (and its two-builder shape says so). Keep state that must survive the swap above it or in an observable model.
 
+### Read the layout as a value
+
+```swift
+@Environment(\.responsiveLayout) private var layout          // override → scene → container → phone
+@Environment(\.containerResponsiveLayout) private var local  // override → container → phone
+
+private var sheetEdge: SheetEdge {
+    layout.value(phone: .bottom, tablet: .leading)
+}
+```
+
+When the family feeds computed properties, view arguments, or pure functions — not view decoration — read it straight from the environment. Same canonical resolution order as every other API, identity-stable, honors `.responsiveLayout(_:)` overrides.
+
+### Cap content to a readable width
+
+```swift
+ScrollView {
+    SettingsContent()
+        .responsiveContentWidth()   // 66% of the scene width on tablet, centered; full-width on phone
+}
+```
+
+The analogue of UIKit's `readableContentGuide`. Apply to the content inside the `ScrollView` — the scroll surface stays edge-to-edge. Reads the scene (window) width, so Split View and Stage Manager panes inset relative to their own window; pass `tabletFraction:` to tune.
+
 ### Resolve against the window, not the container
 
 ```swift
@@ -91,7 +115,8 @@ Views using `.scene` self-discover when no anchor exists, though the first frame
 
 ```swift
 @Environment(\.sceneLayout) private var sceneLayout
-// sceneLayout?.horizontalSizeClass, .size, .interfaceOrientation, .safeAreaInsets, .responsiveLayout
+// sceneLayout?.horizontalSizeClass, .size, .interfaceOrientation, .safeAreaInsets,
+// .responsiveLayout, .isLandscapeAspectRatio (width > height — not the same as orientation)
 ```
 
 ### Force a layout (previews and tests)
@@ -99,6 +124,18 @@ Views using `.scene` self-discover when no anchor exists, though the first frame
 ```swift
 MyScreen()
     .responsiveLayout(.tablet)
+```
+
+When code also reads scene *size*, mock the whole scene instead — every scene-truth read (family, size, orientation, safe area) resolves against the declared values, so tablet previews are truthful on any canvas:
+
+```swift
+#Preview("Tablet, landscape window") {
+    MyScreen()
+        .sceneLayout(mocking: SceneLayoutMockValues(
+            size: CGSize(width: 1210, height: 856),
+            horizontalSizeClass: .regular
+        ))
+}
 ```
 
 ### Accessibility-driven scrolling
@@ -112,11 +149,20 @@ Dashboard()
 
 Content lives in a single always-present `ScrollView` whose scrolling toggles on and off; it's never a structural swap. A Dynamic Type change mid-session won't wipe a half-filled form's state, and `Spacer`-based layouts keep their shape while scrolling is inactive.
 
+Greedy children (aspect-ratio images, `Map`) would otherwise make the fit test overflow permanently — give them a compressible floor so they shrink first and scrolling engages only when even the floored layout can't fit:
+
+```swift
+Image(.hero)
+    .resizable()
+    .aspectRatio(1.6, contentMode: .fit)
+    .accessibilityScrollFloor(150)   // compress to 150pt before scrolling engages
+```
+
 ## View identity guarantees
 
 The kit follows one rule: **identity behavior is visible in an API's shape.**
 
-- Everything modifier-shaped (`.responsive { }`, `.responsiveLayout()`, `.accessibilityScrollView()`, `.sceneLayoutAnchor()`) is guaranteed identity-stable across layout changes.
+- Everything modifier-shaped (`.responsive { }`, `.responsiveLayout()`, `.responsiveContentWidth()`, `.accessibilityScrollView()`, `.accessibilityScrollFloor()`, `.sceneLayoutAnchor()`, `.sceneLayout(mocking:)`) and every environment read (`\.responsiveLayout`, `\.containerResponsiveLayout`, `\.sceneLayout`) is guaranteed identity-stable across layout changes.
 - The one API that swaps subtrees, `ResponsiveView { } tablet: { }`, declares it by taking two builders.
 
 ## Demo app

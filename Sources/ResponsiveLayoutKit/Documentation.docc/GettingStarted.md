@@ -37,6 +37,33 @@ ResponsiveView {
 
 Crossing a layout threshold tears down one subtree and builds the other, resetting any `@State` inside. Keep state that must survive the swap above the ``ResponsiveView`` or in an observable model.
 
+### Read the layout as a value
+
+When the layout family feeds computed properties, view arguments, or pure functions — not view decoration — read ``SwiftUICore/EnvironmentValues/responsiveLayout``. It applies the same resolution order as every other RLK API (override, then scene truth, then container size class, then phone):
+
+```swift
+@Environment(\.responsiveLayout) private var layout
+
+private var sheetEdge: SheetEdge {
+    layout.value(phone: .bottom, tablet: .leading)
+}
+```
+
+``SwiftUICore/EnvironmentValues/containerResponsiveLayout`` is the container-shaped companion: it deliberately ignores scene truth, so a compact-width sheet on iPad reads ``ResponsiveLayout/phone`` there. Both reads are identity-stable — no closure, no subtree swap.
+
+### Cap content to a readable width
+
+``SwiftUICore/View/responsiveContentWidth(tabletFraction:)`` constrains scroll content to a fraction of the scene width on tablet layouts — RLK's analogue of UIKit's `readableContentGuide`. Apply it to the content inside a `ScrollView`, never the `ScrollView` itself, so gutter pans still scroll:
+
+```swift
+ScrollView {
+    SettingsContent()
+        .responsiveContentWidth()   // baseTabletLayoutRatio (0.66); pass tabletFraction: to tune
+}
+```
+
+Phone layouts stay full-width. Avoid `containerRelativeFrame` for this: on a vertical `ScrollView`'s cross axis it resolves against the content's own width, so fractions below 1 feed back and collapse the content.
+
 ### Resolve against the window scene
 
 By default a decision resolves against the local container. To resolve against the window instead, pass ``LayoutContext/scene``. In a compact-width sheet on iPad, ``LayoutContext/container`` reads phone while ``LayoutContext/scene`` reads tablet:
@@ -76,6 +103,20 @@ MyScreen()
     .responsiveLayout(.tablet)
 ```
 
+When code also reads scene *size* (or orientation, or safe area), mock the whole scene instead with ``SwiftUICore/View/sceneLayout(mocking:)`` — one modifier makes every scene-truth read resolve against declared values, so a tablet preview is truthful even on a phone-sized canvas:
+
+```swift
+#Preview("Tablet, landscape window") {
+    MyScreen()
+        .sceneLayout(
+            mocking: SceneLayoutMockValues(
+                size: CGSize(width: 1210, height: 856),
+                horizontalSizeClass: .regular
+            )
+        )
+}
+```
+
 ### Scroll only when content may not fit
 
 ``SwiftUICore/View/accessibilityScrollView(_:)`` makes a view scrollable when large Dynamic Type or a short window means its content might clip. Content always lives in a single always-present `ScrollView` whose scrolling toggles on and off, so it is never a structural swap and a mid-session Dynamic Type change never resets `@State`:
@@ -88,3 +129,12 @@ Dashboard()
 ```
 
 Choose the strategy with ``AccessibilityScrollMode``, and tune the window-height cutoff with ``AccessibilityScrollHeightThreshold``.
+
+Greedy children — an aspect-ratio image, a `Map` — report a large ideal height that would make the fit test overflow permanently. Give them a floor with ``SwiftUICore/View/accessibilityScrollFloor(_:)`` so they compress first and scrolling engages only when even the floored layout can't fit:
+
+```swift
+Image(.hero)
+    .resizable()
+    .aspectRatio(1.6, contentMode: .fit)
+    .accessibilityScrollFloor(150)
+```

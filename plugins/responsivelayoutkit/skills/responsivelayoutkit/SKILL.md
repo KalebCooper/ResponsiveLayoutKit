@@ -1,6 +1,6 @@
 ---
 name: responsivelayoutkit
-description: Use when building SwiftUI apps (iOS 26+) with ResponsiveLayoutKit — a.k.a. RLK — that adapt layout to phone vs tablet / size class, or need window-scene truth instead of container-local size classes — sidebar-vs-tab-bar, column counts, sheets on iPad that must know the scene is regular-width, or accessibility-driven conditional scrolling. Triggers on the ResponsiveLayoutKit (RLK) library and its symbols: ResponsiveView, the .responsive and .responsiveLayout view modifiers, .sceneLayoutAnchor and the sceneLayout environment value, .accessibilityScrollView, and the ResponsiveLayout, LayoutContext, SceneLayoutEnvironment, AccessibilityScrollMode, and AccessibilityScrollHeightThreshold types. Also use when a user refers to the library as RLK, when deciding between container-local and scene-wide size-class resolution, or when a layout change is unexpectedly resetting @State.
+description: Use when building SwiftUI apps (iOS 26+) with ResponsiveLayoutKit — a.k.a. RLK — that adapt layout to phone vs tablet / size class, or need window-scene truth instead of container-local size classes — sidebar-vs-tab-bar, column counts, sheets on iPad that must know the scene is regular-width, readable content width capping, or accessibility-driven conditional scrolling. Triggers on the ResponsiveLayoutKit (RLK) library and its symbols: ResponsiveView, the .responsive, .responsiveLayout, .responsiveContentWidth, .accessibilityScrollView, and .accessibilityScrollFloor view modifiers, .sceneLayoutAnchor and the sceneLayout / responsiveLayout / containerResponsiveLayout environment values, .sceneLayout(mocking:), and the ResponsiveLayout, LayoutContext, SceneLayoutEnvironment, SceneLayoutReader, SceneLayoutMockValues, AccessibilityScrollMode, and AccessibilityScrollHeightThreshold types. Also use when a user refers to the library as RLK, when deciding between container-local and scene-wide size-class resolution, when the layout family should feed computed properties or pure functions as a value, when mocking scene size in previews/tests, or when a layout change is unexpectedly resetting @State.
 ---
 
 # ResponsiveLayoutKit
@@ -20,11 +20,17 @@ State that must survive a `ResponsiveView` swap belongs **above** the `Responsiv
 |---|---|
 | Tweak one hierarchy's params (padding, style, width) per layout | `.responsive { content, layout in … }` |
 | Two genuinely different hierarchies (tab bar vs split view) | `ResponsiveView { } tablet: { }` |
+| **Layout family as a value** — computed properties, view arguments, pure functions | `@Environment(\.responsiveLayout)` (canonical) / `@Environment(\.containerResponsiveLayout)` (container-only) |
+| Cap scroll content to a readable width on tablet | `.responsiveContentWidth(tabletFraction:)` on the ScrollView's *content* |
 | Force a layout in previews/tests/containers | `.responsiveLayout(_:)` |
-| Read raw scene truth (size, orientation, safe area) | `@Environment(\.sceneLayout)` + `.sceneLayoutAnchor()` |
+| Mock the whole scene (family AND size/orientation/safe area) in previews/tests | `.sceneLayout(mocking: SceneLayoutMockValues(…))` |
+| Read raw scene truth (size, orientation, safe area) | `@Environment(\.sceneLayout)` + `.sceneLayoutAnchor()`, or `SceneLayoutReader { … }` (self-discovering) |
 | Scroll only when content may not fit (Dynamic Type / short window) | `.accessibilityScrollView(_:)` |
+| Let a greedy view (image/Map) compress before scrolling engages | `.accessibilityScrollFloor(_:)` on the greedy child |
 
 **Prefer `.responsive` over `ResponsiveView`** unless the subtrees are structurally different — `.responsive` preserves state. Do not branch on `layout` *inside* the `.responsive` closure to return different view types; that reintroduces an identity swap. Change parameters, not structure.
+
+**Never hand-roll the resolution chain** (`override ?? sceneLayout?.responsiveLayout ?? .phone` in app code is a bug — it skips the container step). Read `@Environment(\.responsiveLayout)`; RLK owns the order.
 
 ## Container vs scene resolution
 
@@ -97,6 +103,30 @@ Overrides both container and scene resolution for the whole subtree. `nil` remov
 MyScreen().responsiveLayout(.tablet)   // previews, snapshot tests, forced containers
 ```
 
+### `\.responsiveLayout` + `\.containerResponsiveLayout` — the resolved family as a value
+```swift
+@Environment(\.responsiveLayout) var layout: ResponsiveLayout            // override → scene → container → phone
+@Environment(\.containerResponsiveLayout) var local: ResponsiveLayout    // override → container → phone
+```
+For family-as-data: computed properties, `onChange` triggers, view arguments, pure functions. No closure, no subtree swap, honors `.responsiveLayout(_:)` overrides.
+```swift
+private var sheetEdge: SheetEdge { layout.value(phone: .bottom, tablet: .leading) }
+.toolbarTitleDisplayMode(layout.value(phone: .inlineLarge, tablet: .large))
+```
+`\.responsiveLayout` reads scene truth from the environment only — install `.sceneLayoutAnchor()` at the scene root; without one (or first frame) it falls back to the container size class. `\.containerResponsiveLayout` deliberately ignores scene truth: in a compact iPad sheet it reads `.phone` while `\.responsiveLayout` reads `.tablet`.
+
+### `.responsiveContentWidth(tabletFraction:)` — readable content width
+```swift
+func responsiveContentWidth(tabletFraction: CGFloat = ResponsiveLayout.baseTabletLayoutRatio) -> some View
+```
+Caps content to a fraction of the *scene* width on tablet, centered; full-width on phone and before scene discovery. UIKit `readableContentGuide` analogue.
+```swift
+ScrollView {
+    SettingsContent().responsiveContentWidth()   // content, NOT the ScrollView
+}
+```
+Three rules baked in: (1) apply to the ScrollView's **content**, never the ScrollView, so gutter pans still scroll; (2) it reads **scene** width, not display width — Split View/Stage Manager panes inset relative to their own window; (3) never reimplement with `containerRelativeFrame(.horizontal)` — on a vertical ScrollView's cross axis the container resolves against the content's own width, so fractions < 1 feed back and collapse content toward zero.
+
 ### `.sceneLayoutAnchor()` + `\.sceneLayout` — scene truth
 ```swift
 func sceneLayoutAnchor() -> some View                       // publish scene truth to descendants
@@ -115,8 +145,37 @@ size:                CGSize                    // scene coordinate-space size, p
 interfaceOrientation: UIInterfaceOrientation
 safeAreaInsets:      EdgeInsets
 responsiveLayout:    ResponsiveLayout          // implied by horizontalSizeClass
+isLandscapeAspectRatio: Bool                   // size.width > size.height — NOT 1:1 with interfaceOrientation
 ```
-Reuses an upstream anchor's instance if one exists; multiple anchors in one scene resolve to the same instance.
+Reuses an upstream anchor's instance if one exists; multiple anchors in one scene resolve to the same instance. For layout math, prefer `isLandscapeAspectRatio` over `interfaceOrientation` — a freely resized window (Stage Manager/Split View) can be landscape-shaped in any orientation, and the orientation enum drags in `.unknown`/`.portraitUpsideDown`.
+
+### `SceneLayoutReader` — closure-based scene truth, self-discovering
+```swift
+SceneLayoutReader { sceneLayout in                 // SceneLayoutEnvironment?
+    SidebarColumn(width: (sceneLayout?.size.width ?? proposedWidth) * 0.33)
+}
+```
+Uses the inherited anchor when one exists upstream; otherwise discovers the scene locally through a hidden probe. Either way `nil` for the first layout pass — declare the fallback inline (the value in `?? …` is per-call-site judgment: a proposed width, `.infinity` for "no cap," an assumed portrait).
+
+### `.sceneLayout(mocking:)` + `SceneLayoutMockValues` — previews and tests
+```swift
+struct SceneLayoutMockValues: Equatable {
+    init(size: CGSize,
+         horizontalSizeClass: UserInterfaceSizeClass,
+         verticalSizeClass: UserInterfaceSizeClass = .regular,
+         interfaceOrientation: UIInterfaceOrientation = .portrait,
+         safeAreaInsets: EdgeInsets = EdgeInsets())
+}
+func sceneLayout(mocking values: SceneLayoutMockValues) -> some View
+```
+Publishes a synthetic scene so **every** scene-truth read — family, size, orientation, safe area — resolves against declared values, present from the very first frame:
+```swift
+#Preview("Tablet, landscape window") {
+    MyScreen().sceneLayout(mocking: SceneLayoutMockValues(
+        size: CGSize(width: 1210, height: 856), horizontalSizeClass: .regular))
+}
+```
+Replaces the old `.responsiveLayout(.tablet)` + `.sceneLayoutAnchor()` preview pairing (which left size reads resolving against the live canvas). Plain environment injection — composable, no hidden machinery; a `.responsiveLayout(_:)` override still wins family resolution.
 
 ### `.accessibilityScrollView(_:)` — identity-stable conditional scrolling
 ```swift
@@ -144,6 +203,21 @@ SettingsForm().accessibilityScrollView(.threshold())   // default: > .accessibil
 Dashboard().accessibilityScrollView(.automatic)        // overflow-only
 ```
 
+### `.accessibilityScrollFloor(_:)` — compressible floor for greedy views
+```swift
+func accessibilityScrollFloor(_ height: CGFloat) -> some View   // = frame(minHeight: h, idealHeight: h)
+```
+A greedy child — an aspect-ratio image, a `Map` — reports a large width-derived *ideal* height, so `.automatic`'s fit test overflows permanently and scrolling always engages, even when the view could compress and everything would fit. The floor pins the child's ideal to `height`, so the fit test measures the compressed layout, and sets `minHeight` so it never shrinks below the floor. No max — it still grows to natural size when space allows.
+```swift
+VStack {
+    headerSection
+    Image(.hero).resizable().aspectRatio(1.6, contentMode: .fit)
+        .accessibilityScrollFloor(150)   // compress to 150pt before scrolling engages
+}
+.accessibilityScrollView()
+```
+Semantics: content compresses the floored children first; scrolling engages only when even the floored layout overflows (floored children then render at the floor). Designed for `.automatic`; harmless under the other modes.
+
 ## Common mistakes
 
 - **Expecting `ResponsiveView` to preserve `@State` across a rotate/resize.** It won't — that's the swap semantics. Use `.responsive` for state-preserving decoration, or lift the state above the `ResponsiveView`.
@@ -151,4 +225,9 @@ Dashboard().accessibilityScrollView(.automatic)        // overflow-only
 - **Using `.container` when you meant the window.** Inside a sheet/popover/column on iPad, `.container` is compact. For "what is my *window*," pass `in: .scene`.
 - **Reading `\.sceneLayout` without an anchor and expecting a value immediately.** It's `nil` until discovery completes; guard with `if let`. Apply `.sceneLayoutAnchor()` at the scene root to make it reliably available and avoid the first-frame container fallback for `.scene` resolution.
 - **Assuming `.threshold` scrolling reacts to window height with no scene.** Height only votes once the scene is discovered; without it only the Dynamic Type test applies.
+- **Hand-rolling layout resolution** (`override ?? sceneLayout?.responsiveLayout ?? .phone`). Skips the container-size-class step and forks RLK's canonical order. Read `@Environment(\.responsiveLayout)` instead.
+- **`containerRelativeFrame` for content-width capping in a vertical ScrollView.** Cross-axis feedback collapses content toward zero width. Use `.responsiveContentWidth()` (scene-width-based).
+- **A greedy view under `.automatic` scrolling permanently.** An aspect-ratio image/Map's large ideal height makes the fit test always overflow. Give it `.accessibilityScrollFloor(_:)`.
+- **Pairing `.responsiveLayout(.tablet)` with `.sceneLayoutAnchor()` in previews to fake a tablet.** Size-reading code still sees the live (phone-sized) canvas. Use `.sceneLayout(mocking:)` — one modifier, family AND size.
+- **Deriving landscape from `interfaceOrientation` for layout math.** Freely resized windows break the equivalence. Use `SceneLayoutEnvironment.isLandscapeAspectRatio`.
 - **Wrong platform.** iOS 26+ only (uses `UIWindowScene.effectiveGeometry`, `@Entry`, `@Observable`, `onGeometryChange`).

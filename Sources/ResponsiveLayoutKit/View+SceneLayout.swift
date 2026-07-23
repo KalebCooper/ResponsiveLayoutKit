@@ -37,6 +37,7 @@ private struct SceneLayoutAnchorModifier: ViewModifier {
   @Environment(\.sceneLayout) private var inherited
 
   func body(content: Content) -> some View {
+    let environment = inherited ?? discovered
     content
       .background {
         if inherited == nil {
@@ -46,6 +47,10 @@ private struct SceneLayoutAnchorModifier: ViewModifier {
             .allowsHitTesting(false)
         }
       }
-      .environment(\.sceneLayout, inherited ?? discovered)
+      .environment(\.sceneLayout, environment)
+      // Reading `responsiveLayout` registers Observation tracking, so a scene
+      // size-class change re-renders the anchor and republishes both the
+      // observable and this plain-value snapshot.
+      .environment(\.sceneResponsiveLayout, environment?.responsiveLayout)
   }
 }

@@ -51,27 +51,3 @@ struct SceneLayoutProbe: UIViewRepresentable {
     }
   }
 }
-
-/// Provides its content closure with the scene's ``SceneLayoutEnvironment`` —
-/// the inherited one when an anchor exists upstream, otherwise one discovered
-/// locally via ``SceneLayoutProbe``. `nil` until discovery completes (first
-/// layout pass).
-struct SceneLayoutReader<Content: View>: View {
-
-  @ViewBuilder let content: (SceneLayoutEnvironment?) -> Content
-
-  @State private var discovered: SceneLayoutEnvironment?
-  @Environment(\.sceneLayout) private var inherited
-
-  var body: some View {
-    content(inherited ?? discovered)
-      .background {
-        if inherited == nil {
-          SceneLayoutProbe { discovered = $0 }
-            .frame(width: 0, height: 0)
-            .accessibilityHidden(true)
-            .allowsHitTesting(false)
-        }
-      }
-  }
-}

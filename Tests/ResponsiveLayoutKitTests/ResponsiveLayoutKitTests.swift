@@ -193,6 +193,149 @@ struct LayoutContextTests {
   }
 }
 
+@Suite("EnvironmentValues resolved layout")
+struct EnvironmentValuesResolvedLayoutTests {
+
+  @Test("Canonical key applies override, then scene truth, then container")
+  func canonicalPrecedence() {
+    var environment = EnvironmentValues()
+    environment.horizontalSizeClass = .compact
+    #expect(environment.responsiveLayout == .phone)
+
+    environment.sceneResponsiveLayout = .tablet
+    #expect(environment.responsiveLayout == .tablet)
+
+    environment.responsiveLayoutOverride = .phone
+    #expect(environment.responsiveLayout == .phone)
+  }
+
+  @Test("Container key applies an override")
+  func containerAppliesOverride() {
+    var environment = EnvironmentValues()
+    environment.horizontalSizeClass = .compact
+    environment.responsiveLayoutOverride = .tablet
+    #expect(environment.containerResponsiveLayout == .tablet)
+  }
+
+  @Test("Container key ignores scene truth")
+  func containerIgnoresScene() {
+    var environment = EnvironmentValues()
+    environment.horizontalSizeClass = .compact
+    environment.sceneResponsiveLayout = .tablet
+    #expect(environment.containerResponsiveLayout == .phone)
+    #expect(environment.responsiveLayout == .tablet)
+  }
+
+  @Test("Phone fallback when nothing is set")
+  func phoneFallback() {
+    let environment = EnvironmentValues()
+    #expect(environment.containerResponsiveLayout == .phone)
+    #expect(environment.responsiveLayout == .phone)
+  }
+}
+
+@Suite("Responsive content width")
+struct ResponsiveContentWidthTests {
+
+  @Test("Negative fraction clamps the cap to zero")
+  func negativeFractionClamped() {
+    #expect(
+      resolvedContentMaxWidth(layout: .tablet, sceneWidth: 1000, tabletFraction: -0.5) == 0
+    )
+  }
+
+  @Test("Phone layout is uncapped")
+  func phoneUncapped() {
+    #expect(
+      resolvedContentMaxWidth(layout: .phone, sceneWidth: 1210, tabletFraction: 0.66)
+        == .infinity
+    )
+  }
+
+  @Test("Tablet layout caps to the scene-width fraction")
+  func tabletCapped() {
+    #expect(
+      resolvedContentMaxWidth(layout: .tablet, sceneWidth: 1000, tabletFraction: 0.66) == 660
+    )
+    #expect(
+      resolvedContentMaxWidth(layout: .tablet, sceneWidth: 1000, tabletFraction: 0.5) == 500
+    )
+  }
+
+  @Test("Tablet layout with no discovered scene width is uncapped")
+  func undiscoveredSceneUncapped() {
+    #expect(
+      resolvedContentMaxWidth(layout: .tablet, sceneWidth: nil, tabletFraction: 0.66)
+        == .infinity
+    )
+    #expect(
+      resolvedContentMaxWidth(layout: .tablet, sceneWidth: 0, tabletFraction: 0.66) == .infinity
+    )
+  }
+}
+
+@Suite("SceneLayoutEnvironment mock values")
+@MainActor
+struct SceneLayoutMockTests {
+
+  @Test("Aspect ratio reflects size, not orientation")
+  func aspectRatio() {
+    let landscape = SceneLayoutEnvironment(
+      mockValues: SceneLayoutMockValues(
+        size: CGSize(width: 856, height: 600),
+        horizontalSizeClass: .regular,
+        interfaceOrientation: .portrait
+      )
+    )
+    #expect(landscape.isLandscapeAspectRatio)
+
+    let portrait = SceneLayoutEnvironment(
+      mockValues: SceneLayoutMockValues(
+        size: CGSize(width: 600, height: 856),
+        horizontalSizeClass: .regular,
+        interfaceOrientation: .landscapeLeft
+      )
+    )
+    #expect(!portrait.isLandscapeAspectRatio)
+  }
+
+  @Test("Applied values replace every published value")
+  func applyReplacesValues() {
+    let environment = SceneLayoutEnvironment(
+      mockValues: SceneLayoutMockValues(
+        size: CGSize(width: 402, height: 874),
+        horizontalSizeClass: .compact
+      )
+    )
+    environment.apply(
+      SceneLayoutMockValues(
+        size: CGSize(width: 1210, height: 856),
+        horizontalSizeClass: .regular,
+        verticalSizeClass: .compact,
+        interfaceOrientation: .landscapeRight,
+        safeAreaInsets: EdgeInsets(top: 24, leading: 0, bottom: 20, trailing: 0)
+      )
+    )
+    #expect(environment.horizontalSizeClass == .regular)
+    #expect(environment.interfaceOrientation == .landscapeRight)
+    #expect(environment.responsiveLayout == .tablet)
+    #expect(environment.safeAreaInsets.top == 24)
+    #expect(environment.size == CGSize(width: 1210, height: 856))
+    #expect(environment.verticalSizeClass == .compact)
+  }
+
+  @Test("Mock values default to a portrait regular-height window")
+  func defaults() {
+    let values = SceneLayoutMockValues(
+      size: CGSize(width: 402, height: 874),
+      horizontalSizeClass: .compact
+    )
+    #expect(values.interfaceOrientation == .portrait)
+    #expect(values.safeAreaInsets == EdgeInsets())
+    #expect(values.verticalSizeClass == .regular)
+  }
+}
+
 @Suite("SceneLayoutRegistry")
 struct SceneLayoutRegistryTests {
 
